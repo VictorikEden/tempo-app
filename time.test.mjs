@@ -1,0 +1,23 @@
+import assert from 'node:assert/strict';
+import {initial,DEFAULT,instances,issues,adjust,dayKey} from './lib/time.ts';
+const data=structuredClone(initial);
+function current(iso){const d=new Date(iso);return instances(data,d).filter(a=>a.start<=+d&&a.end>+d)}
+assert.equal(current('2026-10-21T23:59:59')[0].name,'Ministry');
+assert.equal(current('2026-10-22T00:00:00')[0].name,'Intimacy with God');
+assert.equal(current('2026-10-22T00:15:00')[0].name,'Undistracted Work');
+assert.equal(current('2026-10-21T16:30:00')[0].name,'Focused Work');
+assert.equal(issues(DEFAULT).length,0);
+assert.equal(DEFAULT.reduce((s,a)=>s+a.end-a.start,0),1440);
+data.overrides['2026-10-21']=[{id:'overnight',name:'Overnight',category:'Work',start:1380,end:60,reminders:[]}];
+assert.equal(current('2026-10-22T00:30:00').some(a=>a.id==='overnight'),true);
+assert.equal(current('2026-10-22T01:00:00').some(a=>a.id==='overnight'),false);
+const extension=adjust(DEFAULT,'default-9',30,'keep');
+assert.equal(extension.activities.find(a=>a.id==='default-9').end,1140);
+assert.ok(issues(extension.activities).some(s=>s.startsWith('Overlap')));
+assert.equal(DEFAULT[9].end,1110);
+const shorter=adjust(DEFAULT,'default-7',30,'shorten');
+assert.equal(shorter.activities.find(a=>a.category==='Rest').start,930);
+assert.equal(shorter.activities.find(a=>a.category==='Rest').end,990);
+assert.equal(issues(shorter.activities).length,0);
+assert.equal(dayKey(new Date(2026,9,22,0,0)),'2026-10-22');
+console.log('Passed: boundaries, midnight rollover, overnight instances, overlaps, complete default day, immutable extension preview, flexible shortening, local calendar dates.');

@@ -1,0 +1,3 @@
+import fs from 'node:fs';
+const p='lib/pwa.ts';let s=fs.readFileSync(p,'utf8');s=s.replace("navigator.serviceWorker.register('/sw.js', { updateViaCache: 'none' })","navigator.serviceWorker.register(import.meta.env.BASE_URL+'sw.js', { updateViaCache: 'none',scope:import.meta.env.BASE_URL })");fs.writeFileSync(p,s);
+const file='public/manifest.webmanifest';const manifest=JSON.parse(fs.readFileSync(file,'utf8').replace(/^\uFEFF/,''));manifest.name='TEMPO';manifest.short_name='TEMPO';manifest.start_url='./';manifest.scope='./';for(const icon of manifest.icons)icon.src=icon.src.replace(/^\//,'');fs.writeFileSync(file,JSON.stringify(manifest,null,2));
